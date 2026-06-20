@@ -1,0 +1,25 @@
+{
+  "name": "行为链与每周复盘记录器",
+  "short_name": "行为记录器",
+  "description": "本设备本地保存的行为链、事件复盘与每周总结记录器。",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#f6f7f3",
+  "theme_color": "#3e756b",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

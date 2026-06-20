@@ -1,0 +1,2323 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#3e756b">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="行为记录器">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <title>行为链与每周复盘记录器</title>
+  <style>
+    :root {
+      --bg: #f6f7f3;
+      --panel: #ffffff;
+      --soft: #f0f5ef;
+      --soft-2: #faf9f5;
+      --text: #242826;
+      --muted: #65706b;
+      --line: #dfe4dc;
+      --accent: #3e756b;
+      --accent-dark: #2f5d55;
+      --warn: #8b5e20;
+      --warn-bg: #fff6df;
+      --danger: #9d5148;
+      --danger-bg: #fff0ed;
+      --shadow: 0 10px 28px rgba(38, 54, 48, 0.07);
+      --radius: 8px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      line-height: 1.55;
+    }
+
+    button, input, select, textarea { font: inherit; }
+
+    button {
+      min-height: 42px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: #fff;
+      color: var(--text);
+      padding: 9px 13px;
+      cursor: pointer;
+    }
+
+    button:hover { border-color: #b9c7be; }
+
+    button:focus-visible,
+    input:focus-visible,
+    select:focus-visible,
+    textarea:focus-visible,
+    summary:focus-visible {
+      outline: 2px solid rgba(62, 117, 107, 0.28);
+      outline-offset: 2px;
+    }
+
+    .primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+
+    .primary:hover {
+      background: var(--accent-dark);
+      border-color: var(--accent-dark);
+    }
+
+    .danger {
+      color: var(--danger);
+      border-color: #dfb6af;
+      background: #fffafa;
+    }
+
+    .ghost { background: transparent; }
+
+    .container {
+      width: min(100% - 28px, 1040px);
+      margin: 0 auto;
+    }
+
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      background: rgba(255, 255, 255, 0.96);
+      border-bottom: 1px solid var(--line);
+      backdrop-filter: blur(10px);
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 18px;
+      padding: 14px 0 10px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 21px;
+      line-height: 1.25;
+      letter-spacing: 0;
+    }
+
+    .subtitle {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .nav {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding: 0 0 12px;
+      scrollbar-width: none;
+    }
+
+    .nav::-webkit-scrollbar { display: none; }
+
+    .nav button {
+      flex: 0 0 auto;
+      min-width: 92px;
+      background: var(--soft-2);
+    }
+
+    .nav button.active {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+
+    main { padding: 18px 0 42px; }
+
+    .view { display: none; }
+    .view.active { display: block; }
+
+    .page-head {
+      margin: 0 0 14px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .page-head h2 {
+      margin: 0 0 3px;
+      font-size: 23px;
+      letter-spacing: 0;
+    }
+
+    .purpose {
+      margin: 0;
+      color: var(--muted);
+      font-size: 15px;
+    }
+
+    .flow-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin: 16px 0;
+    }
+
+    .flow-card {
+      display: block;
+      text-align: left;
+      padding: 15px;
+      min-height: 96px;
+      background: #fff;
+      box-shadow: var(--shadow);
+    }
+
+    .flow-card.active {
+      border-color: var(--accent);
+      background: var(--soft);
+    }
+
+    .flow-card strong {
+      display: block;
+      font-size: 17px;
+      margin-bottom: 5px;
+    }
+
+    .flow-card span {
+      display: block;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      margin-bottom: 14px;
+      overflow: hidden;
+    }
+
+    .card-head {
+      padding: 15px 17px;
+      border-bottom: 1px solid var(--line);
+      background: var(--soft-2);
+    }
+
+    .card-head h3 {
+      margin: 0;
+      font-size: 18px;
+      letter-spacing: 0;
+    }
+
+    .card-head p {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .card-body { padding: 17px; }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .full { grid-column: 1 / -1; }
+
+    label {
+      display: block;
+      color: #33413b;
+      font-size: 14px;
+      margin-bottom: 6px;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: #fff;
+      color: var(--text);
+      min-height: 42px;
+      padding: 9px 10px;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 92px;
+    }
+
+    input[type="range"] { padding: 0; }
+
+    .range-line {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .range-value {
+      min-width: 38px;
+      text-align: center;
+      color: var(--accent-dark);
+      font-weight: 700;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      justify-content: flex-end;
+      margin-top: 16px;
+      padding-top: 14px;
+      border-top: 1px solid var(--line);
+    }
+
+    .actions .left { margin-right: auto; }
+
+    .hint,
+    .warning {
+      border: 1px solid #d8e5da;
+      border-radius: var(--radius);
+      background: #f2f8f2;
+      color: #40524b;
+      padding: 11px 12px;
+      margin-bottom: 14px;
+      font-size: 14px;
+    }
+
+    .warning {
+      display: none;
+      background: var(--warn-bg);
+      border-color: #ead49a;
+      color: var(--warn);
+    }
+
+    .warning.show { display: block; }
+
+    .stepper {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .stepper button {
+      min-height: 38px;
+      padding: 7px 8px;
+      font-size: 13px;
+    }
+
+    .stepper button.active {
+      border-color: var(--accent);
+      background: var(--soft);
+      color: var(--accent-dark);
+      font-weight: 700;
+    }
+
+    .step-panel { display: none; }
+    .step-panel.active { display: block; }
+
+    details.fold {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fff;
+      margin-top: 14px;
+      overflow: hidden;
+    }
+
+    details.fold > summary {
+      cursor: pointer;
+      padding: 12px 14px;
+      background: var(--soft-2);
+      font-weight: 700;
+    }
+
+    details.fold .fold-body { padding: 14px; }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 36px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: #fff;
+      padding: 7px 12px;
+      color: #33413b;
+      font-size: 14px;
+      user-select: none;
+    }
+
+    .chip input {
+      width: auto;
+      min-height: auto;
+      margin: 0 6px 0 0;
+    }
+
+    .choice .chip,
+    .choice-group .chip { cursor: pointer; }
+
+    .choice input:checked + span,
+    .chip:has(input:checked) {
+      border-color: var(--accent);
+      background: var(--soft);
+      color: var(--accent-dark);
+      font-weight: 700;
+    }
+
+    .library {
+      display: grid;
+      gap: 12px;
+    }
+
+    .library-group {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 12px;
+      background: #fff;
+    }
+
+    .library-group b {
+      display: block;
+      margin-bottom: 8px;
+      color: #33413b;
+    }
+
+    .library .chips button {
+      min-height: 34px;
+      border-radius: 999px;
+      padding: 6px 11px;
+      font-size: 13px;
+    }
+
+    .hidden { display: none !important; }
+
+    .history-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 9px;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+
+    .history-toolbar input {
+      max-width: 300px;
+      margin-left: auto;
+    }
+
+    .filter-chip.active {
+      border-color: var(--accent);
+      background: var(--soft);
+      color: var(--accent-dark);
+      font-weight: 700;
+    }
+
+    .records {
+      display: grid;
+      gap: 12px;
+    }
+
+    .record-card {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: 0 6px 16px rgba(34, 48, 43, 0.05);
+      overflow: hidden;
+    }
+
+    .record-card.high {
+      border-color: #e4bbb4;
+      background: #fffafa;
+    }
+
+    .record-main {
+      padding: 14px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: start;
+    }
+
+    .record-title {
+      margin: 5px 0 0;
+      font-weight: 700;
+    }
+
+    .record-summary {
+      margin: 5px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      min-height: 26px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--soft-2);
+      color: #52605a;
+      padding: 3px 8px;
+      font-size: 12px;
+    }
+
+    .badge.high {
+      border-color: #e7b6ad;
+      background: var(--danger-bg);
+      color: var(--danger);
+    }
+
+    .record-actions {
+      display: flex;
+      gap: 7px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .record-actions button {
+      min-height: 34px;
+      padding: 6px 9px;
+      font-size: 13px;
+    }
+
+    .record-detail {
+      display: none;
+      border-top: 1px solid var(--line);
+      padding: 14px;
+      background: var(--soft-2);
+    }
+
+    .record-card.open .record-detail { display: block; }
+
+    .detail-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .detail-item {
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: #fff;
+      padding: 9px 10px;
+    }
+
+    .detail-item b {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 3px;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+    }
+
+    .metric {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fff;
+      padding: 14px;
+    }
+
+    .metric b {
+      display: block;
+      font-size: 24px;
+      line-height: 1.2;
+      color: var(--accent-dark);
+    }
+
+    .metric span {
+      display: block;
+      color: var(--muted);
+      margin-top: 4px;
+      font-size: 13px;
+    }
+
+    .empty {
+      padding: 22px;
+      text-align: center;
+      color: var(--muted);
+      border: 1px dashed var(--line);
+      border-radius: var(--radius);
+      background: #fff;
+    }
+
+    .status-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin: 14px 0;
+    }
+
+    .status-item {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fff;
+      padding: 11px 12px;
+      min-height: 72px;
+    }
+
+    .status-item b {
+      display: block;
+      color: var(--accent-dark);
+      font-size: 16px;
+      line-height: 1.25;
+    }
+
+    .status-item span {
+      display: block;
+      color: var(--muted);
+      font-size: 13px;
+      margin-top: 4px;
+    }
+
+    .install-list {
+      margin: 10px 0 0;
+      padding-left: 20px;
+      color: #3f4b46;
+    }
+
+    .install-list li { margin: 5px 0; }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 18px;
+      transform: translateX(-50%);
+      z-index: 50;
+      min-width: min(92vw, 360px);
+      background: #22302b;
+      color: #fff;
+      padding: 11px 14px;
+      border-radius: 7px;
+      text-align: center;
+      box-shadow: var(--shadow);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .2s ease;
+    }
+
+    .toast.show { opacity: 1; }
+
+    footer {
+      padding: 18px 0 34px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    @media (max-width: 760px) {
+      .topbar { display: block; }
+      .flow-grid,
+      .form-grid,
+      .detail-grid,
+      .status-grid,
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .stepper {
+        grid-template-columns: 1fr;
+      }
+
+      .record-main {
+        grid-template-columns: 1fr;
+      }
+
+      .record-actions {
+        justify-content: flex-start;
+      }
+
+      .history-toolbar input {
+        max-width: none;
+        width: 100%;
+        margin-left: 0;
+      }
+
+      .actions {
+        position: sticky;
+        bottom: 0;
+        z-index: 12;
+        background: rgba(255, 255, 255, .96);
+        margin-left: -17px;
+        margin-right: -17px;
+        margin-bottom: -17px;
+        padding: 12px 17px;
+      }
+
+      .actions button {
+        flex: 1 1 auto;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <div class="topbar">
+        <div>
+          <h1>行为链与每周复盘记录器</h1>
+          <p class="subtitle">从混乱反应，到清楚记录、停住冲动、选择替代动作。</p>
+        </div>
+      </div>
+      <nav class="nav" aria-label="主导航">
+        <button type="button" class="active" data-view="todayView">今日记录</button>
+        <button type="button" data-view="historyView">历史记录</button>
+        <button type="button" data-view="weeklyView">每周总结</button>
+        <button type="button" data-view="statsView">趋势统计</button>
+        <button type="button" data-view="settingsView">设置/导出</button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="view active" id="todayView">
+      <div class="page-head">
+        <div>
+          <h2>今日记录</h2>
+          <p class="purpose">刚被触发时先捕捉现场，等稳定一点再做完整复盘。</p>
+        </div>
+      </div>
+
+      <div class="flow-grid" aria-label="记录入口">
+        <button type="button" class="flow-card active" data-flow="quickFlow">
+          <strong>快速捕捉</strong>
+          <span>1 分钟，只记关键现场。</span>
+        </button>
+        <button type="button" class="flow-card" data-flow="chainFlow">
+          <strong>事件复盘</strong>
+          <span>5-10 分钟，把一次事件梳理完整。</span>
+        </button>
+      </div>
+
+      <section class="card" id="quickFlow">
+        <div class="card-head">
+          <h3>快速捕捉</h3>
+          <p>只需要把现场先放下来，不要求分析得很完整。</p>
+        </div>
+        <form class="card-body" id="quickForm">
+          <div class="warning" id="quickAlert">现在不适合做重大决定。先暂停、吃饭、喝水、睡觉、延迟 24 小时。</div>
+          <div class="form-grid">
+            <div>
+              <label for="quickDate">日期时间</label>
+              <input id="quickDate" name="datetime" type="datetime-local">
+            </div>
+            <div>
+              <label for="quickScene">场景</label>
+              <select id="quickScene" name="scene"></select>
+            </div>
+            <div class="full">
+              <label for="quickEvent">今天发生了什么？</label>
+              <textarea id="quickEvent" name="event" required></textarea>
+            </div>
+            <div class="full">
+              <label for="quickJudgment">我当时以为对方怎么看我？</label>
+              <textarea id="quickJudgment" name="perceivedJudgment"></textarea>
+            </div>
+            <div>
+              <label for="quickIntensity">情绪强度 0-10</label>
+              <div class="range-line">
+                <input id="quickIntensity" name="emotionIntensity" type="range" min="0" max="10" value="5">
+                <span class="range-value" data-range-value="quickIntensity">5</span>
+              </div>
+            </div>
+            <div>
+              <label for="quickImpulse">冲动类型</label>
+              <select id="quickImpulse" name="impulseType"></select>
+            </div>
+            <div>
+              <label for="quickStopped">我有没有停住</label>
+              <select id="quickStopped" name="stoppedStatus">
+                <option>是</option>
+                <option>否</option>
+                <option>部分停住</option>
+              </select>
+            </div>
+          </div>
+          <div class="actions">
+            <button type="button" class="left" id="quickToChain">继续做完整复盘</button>
+            <button type="submit" class="primary">保存快速捕捉</button>
+          </div>
+        </form>
+      </section>
+
+      <section class="card hidden" id="chainFlow">
+        <div class="card-head">
+          <h3>事件复盘</h3>
+          <p>按步骤走，不需要一次看到所有问题。</p>
+        </div>
+        <form class="card-body" id="chainForm">
+          <div class="warning" id="chainAlert">现在不适合做重大决定。先暂停、吃饭、喝水、睡觉、延迟 24 小时。</div>
+          <div class="stepper" aria-label="事件复盘步骤">
+            <button type="button" class="active" data-step="1">1 发生了什么</button>
+            <button type="button" data-step="2">2 身体和情绪</button>
+            <button type="button" data-step="3">3 想做什么</button>
+            <button type="button" data-step="4">4 实际行为</button>
+            <button type="button" data-step="5">5 下一次</button>
+          </div>
+
+          <div class="step-panel active" data-step-panel="1">
+            <div class="form-grid">
+              <div>
+                <label for="chainDate">日期时间</label>
+                <input id="chainDate" name="datetime" type="datetime-local">
+              </div>
+              <div>
+                <label for="chainScene">场景</label>
+                <select id="chainScene" name="scene"></select>
+              </div>
+              <div class="full">
+                <label for="chainTrigger">触发点：别人说了/做了什么？</label>
+                <textarea id="chainTrigger" name="trigger" required></textarea>
+              </div>
+              <div class="full">
+                <label for="chainJudgment">我当时以为对方怎么看我？</label>
+                <textarea id="chainJudgment" name="perceivedJudgment"></textarea>
+              </div>
+              <div class="full">
+                <label for="chainFear">我最害怕的结果是什么？</label>
+                <textarea id="chainFear" name="fear"></textarea>
+              </div>
+            </div>
+          </div>
+
+          <div class="step-panel" data-step-panel="2">
+            <div class="form-grid">
+              <div class="full">
+                <label>情绪多选</label>
+                <div class="chips" id="chainEmotions"></div>
+              </div>
+              <div>
+                <label for="chainIntensity">情绪强度 0-10</label>
+                <div class="range-line">
+                  <input id="chainIntensity" name="emotionIntensity" type="range" min="0" max="10" value="5">
+                  <span class="range-value" data-range-value="chainIntensity">5</span>
+                </div>
+              </div>
+              <div class="full">
+                <label>身体反应多选</label>
+                <div class="chips" id="chainBodySignals"></div>
+              </div>
+              <div class="full">
+                <label>今日脆弱因素</label>
+                <div class="chips" id="chainVulnerabilities"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="step-panel" data-step-panel="3">
+            <div class="hint">把冲动翻译成需求：不是急着做什么，而是先看见我真正想要什么。</div>
+            <div class="form-grid">
+              <div>
+                <label for="chainImpulse">冲动类型</label>
+                <select id="chainImpulse" name="impulseType"></select>
+              </div>
+              <div class="full">
+                <label for="chainImmediateImpulse">我最想立刻做什么？</label>
+                <textarea id="chainImmediateImpulse" name="immediateImpulse"></textarea>
+              </div>
+              <div class="full">
+                <label>我真正想要的是</label>
+                <div class="chips choice-group" id="chainRealNeed"></div>
+                <input class="hidden" id="chainRealNeedValue" name="realNeed" type="text">
+              </div>
+            </div>
+          </div>
+
+          <div class="step-panel" data-step-panel="4">
+            <div class="form-grid">
+              <div class="full">
+                <label for="chainActualBehavior">我实际做了什么？</label>
+                <textarea id="chainActualBehavior" name="actualBehavior"></textarea>
+              </div>
+              <div>
+                <label for="chainStopped">我有没有停住</label>
+                <select id="chainStopped" name="stoppedStatus">
+                  <option>是</option>
+                  <option>否</option>
+                  <option>部分停住</option>
+                </select>
+              </div>
+              <div>
+                <label for="chainStopMethod">我用了什么方法停住？</label>
+                <input id="chainStopMethod" name="stopMethod" type="text">
+              </div>
+              <div class="full">
+                <label for="chainAfterStop">停住以后发生了什么？</label>
+                <textarea id="chainAfterStop" name="afterStopResult"></textarea>
+              </div>
+              <div class="full">
+                <label for="chainShortGain">短期收益：这个行为当下帮我得到了什么？</label>
+                <textarea id="chainShortGain" name="shortTermGain"></textarea>
+              </div>
+              <div class="full">
+                <label for="chainLongCost">长期代价：它之后伤害了什么？</label>
+                <textarea id="chainLongCost" name="longTermCost"></textarea>
+              </div>
+            </div>
+
+            <details class="fold">
+              <summary>今天我保住了哪一点选择权？</summary>
+              <div class="fold-body form-grid">
+                <div class="full">
+                  <label for="chainWanted">我本来想做什么？</label>
+                  <textarea id="chainWanted" name="agencyWanted"></textarea>
+                </div>
+                <div class="full">
+                  <label for="chainNotDone">我最后没有做什么？</label>
+                  <textarea id="chainNotDone" name="agencyNotDone"></textarea>
+                </div>
+                <div class="full">
+                  <label for="chainAgencyAction">今天我做了哪个真正选择的动作？</label>
+                  <textarea id="chainAgencyAction" name="agencyAction"></textarea>
+                </div>
+                <div>
+                  <label for="chainAgencyScore">我给这次停住打几分 0-10</label>
+                  <div class="range-line">
+                    <input id="chainAgencyScore" name="agencyScore" type="range" min="0" max="10" value="5">
+                    <span class="range-value" data-range-value="chainAgencyScore">5</span>
+                  </div>
+                </div>
+                <div class="full">
+                  <label for="chainAgencyWhy">为什么这是我的选择？</label>
+                  <textarea id="chainAgencyWhy" name="agencyWhy"></textarea>
+                </div>
+              </div>
+            </details>
+          </div>
+
+          <div class="step-panel" data-step-panel="5">
+            <div class="form-grid">
+              <div class="full">
+                <label>从替代动作库选择一个动作</label>
+                <div class="library" id="alternativeLibrary"></div>
+              </div>
+              <div class="full">
+                <label for="chainAlternative">如果重来一次，我可以做的最低限度替代行为是什么？</label>
+                <textarea id="chainAlternative" name="alternativeAction"></textarea>
+              </div>
+              <div>
+                <label for="chainRepairNeeded">是否需要修复</label>
+                <select id="chainRepairNeeded" name="repairNeeded">
+                  <option>否</option>
+                  <option>是</option>
+                  <option>不确定</option>
+                </select>
+              </div>
+              <div>
+                <label for="chainRepairTarget">修复对象</label>
+                <select id="chainRepairTarget" name="repairTarget"></select>
+              </div>
+              <div>
+                <label for="chainRepairMethod">修复方式</label>
+                <select id="chainRepairMethod" name="repairMethod"></select>
+              </div>
+              <div>
+                <label for="chainRepairStatus">修复状态</label>
+                <select id="chainRepairStatus" name="repairStatus">
+                  <option>未开始</option>
+                  <option>已完成</option>
+                  <option>暂缓</option>
+                </select>
+              </div>
+              <div class="full">
+                <label for="chainNextPlan">下次触发时，我具体做什么？</label>
+                <textarea id="chainNextPlan" name="nextPlan"></textarea>
+              </div>
+            </div>
+
+            <details class="fold">
+              <summary>这像不像我的旧模式？</summary>
+              <div class="fold-body">
+                <div class="chips" id="oldPatternChecks"></div>
+              </div>
+            </details>
+          </div>
+
+          <div class="actions">
+            <button type="button" class="left" id="prevStep">上一步</button>
+            <button type="button" id="nextStep">下一步</button>
+            <button type="submit" class="primary">保存事件复盘</button>
+          </div>
+        </form>
+      </section>
+    </section>
+
+    <section class="view" id="historyView">
+      <div class="page-head">
+        <div>
+          <h2>历史记录</h2>
+          <p class="purpose">用卡片快速回看重点，也能筛出高强度、停住了、需要修复的记录。</p>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-body">
+          <div class="history-toolbar">
+            <button type="button" class="filter-chip active" data-filter="all">全部</button>
+            <button type="button" class="filter-chip" data-filter="high">情绪强度 ≥8</button>
+            <button type="button" class="filter-chip" data-filter="stopped">我停住了</button>
+            <button type="button" class="filter-chip" data-filter="repair">需要修复</button>
+            <button type="button" class="filter-chip" data-filter="testing">试探</button>
+            <button type="button" class="filter-chip" data-filter="collapse">破罐破摔</button>
+            <button type="button" class="filter-chip" data-filter="pleasing">讨好</button>
+            <button type="button" class="filter-chip" data-filter="week">本周</button>
+            <button type="button" class="filter-chip" data-filter="month">本月</button>
+            <input id="historySearch" type="search" placeholder="搜索关键词">
+          </div>
+          <div class="records" id="historyList"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="view" id="weeklyView">
+      <div class="page-head">
+        <div>
+          <h2>每周总结</h2>
+          <p class="purpose">一周只看几个模式，再选一个下周真正要练的动作。</p>
+        </div>
+      </div>
+      <section class="card">
+        <div class="card-head">
+          <h3>每周总结</h3>
+          <p>可以先生成候选提示，再用自己的话填写。</p>
+        </div>
+        <form class="card-body" id="weeklyForm">
+          <div class="hint" id="weeklyHint">本地规则提示会根据本周记录生成，不连接外部 API。</div>
+          <div class="actions" style="margin-top:0; padding-top:0; border-top:0;">
+            <button type="button" class="left" id="generateWeeklyHint">从本周记录自动生成候选提示</button>
+          </div>
+          <div class="form-grid">
+            <div>
+              <label for="weeklyStart">周期开始日期</label>
+              <input id="weeklyStart" name="weekStart" type="date">
+            </div>
+            <div>
+              <label for="weeklyEnd">周期结束日期</label>
+              <input id="weeklyEnd" name="weekEnd" type="date">
+            </div>
+            <div class="full">
+              <label for="weeklyPleasing">这周我在哪里讨好了？</label>
+              <textarea id="weeklyPleasing" name="weeklyPleasing"></textarea>
+            </div>
+            <div class="full">
+              <label for="weeklyTesting">这周我在哪里试探了？</label>
+              <textarea id="weeklyTesting" name="weeklyTesting"></textarea>
+            </div>
+            <div class="full">
+              <label for="weeklyStopped">这周我哪里想自毁或破罐破摔，但停住了？</label>
+              <textarea id="weeklyStopped" name="weeklyStopped"></textarea>
+            </div>
+            <div class="full">
+              <label for="weeklyRepair">这周哪里可以修复？</label>
+              <textarea id="weeklyRepair" name="weeklyRepair"></textarea>
+            </div>
+            <div class="full">
+              <label for="weeklyTrigger">这周最常见的触发点是什么？</label>
+              <textarea id="weeklyTrigger" name="weeklyTrigger"></textarea>
+            </div>
+            <div class="full">
+              <label for="weeklyThought">我最常出现的自动想法是什么？</label>
+              <textarea id="weeklyThought" name="weeklyThought"></textarea>
+            </div>
+            <div class="full">
+              <label for="weeklyAgency">这周我保住了哪些选择权？</label>
+              <textarea id="weeklyAgency" name="weeklyAgency"></textarea>
+            </div>
+            <div>
+              <label for="weeklyGoal">下周只练一个动作</label>
+              <select id="weeklyGoal" name="weeklyGoal"></select>
+            </div>
+            <div class="full">
+              <label for="weeklyNextPlan">下次触发时，我具体做什么？</label>
+              <textarea id="weeklyNextPlan" name="nextPlan"></textarea>
+            </div>
+            <div class="full">
+              <label for="weeklyAffirmation">本周给自己的一个具体肯定</label>
+              <textarea id="weeklyAffirmation" name="weeklyAffirmation"></textarea>
+            </div>
+          </div>
+          <div class="actions">
+            <button type="submit" class="primary">保存每周总结</button>
+          </div>
+        </form>
+      </section>
+    </section>
+
+    <section class="view" id="statsView">
+      <div class="page-head">
+        <div>
+          <h2>趋势统计</h2>
+          <p class="purpose">只看最重要的几个指标：有没有记录、有没有停住、有没有修复。</p>
+        </div>
+      </div>
+      <div class="stats-grid" id="statsGrid"></div>
+    </section>
+
+    <section class="view" id="settingsView">
+      <div class="page-head">
+        <div>
+          <h2>设置/导出</h2>
+          <p class="purpose">所有数据只保存在当前浏览器的 localStorage；这里可以导入、导出或清空。</p>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-body">
+          <div class="hint">这个页面没有后端，也不会连接外部 API。换浏览器或换设备时，历史不会自动同步，需要导出 JSON 再导入。</div>
+          <div class="status-grid" id="pwaStatus">
+            <div class="status-item"><b data-pwa-status="support">检测中</b><span>当前是否支持 PWA</span></div>
+            <div class="status-item"><b data-pwa-status="online">检测中</b><span>当前是否离线</span></div>
+            <div class="status-item"><b data-pwa-status="installed">检测中</b><span>是否已安装到主屏幕</span></div>
+            <div class="status-item"><b data-pwa-status="count">0</b><span>当前本地记录数量</span></div>
+            <div class="status-item"><b data-pwa-status="lastSave">暂无</b><span>上次保存时间</span></div>
+            <div class="status-item"><b data-pwa-status="lastBackup">暂无</b><span>上次备份时间</span></div>
+          </div>
+          <div class="actions" style="justify-content:flex-start;">
+            <button type="button" id="exportJson">导出 JSON</button>
+            <button type="button" id="importJson">导入 JSON</button>
+            <button type="button" id="exportCsv">导出 CSV</button>
+            <button type="button" id="exportTxt">导出 TXT</button>
+            <button type="button" class="danger" id="clearAll">清空全部记录</button>
+            <input class="hidden" type="file" id="importFile" accept="application/json,.json">
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-head">
+          <h3>安装到主屏幕</h3>
+          <p>PWA 需要通过 HTTPS 或 localhost 测试；直接打开本地文件不能完整启用离线缓存。</p>
+        </div>
+        <div class="card-body">
+          <div class="form-grid">
+            <div>
+              <label>iPhone</label>
+              <ol class="install-list">
+                <li>用 Safari 打开这个网页</li>
+                <li>点击分享按钮</li>
+                <li>选择“添加到主屏幕”</li>
+                <li>之后从桌面图标打开</li>
+              </ol>
+            </div>
+            <div>
+              <label>Android</label>
+              <ol class="install-list">
+                <li>用 Chrome 打开网页</li>
+                <li>点击菜单</li>
+                <li>选择“安装应用”或“添加到主屏幕”</li>
+              </ol>
+            </div>
+            <div class="full">
+              <label>电脑</label>
+              <p class="purpose">直接用浏览器打开部署后的网址即可。手机和电脑默认各自保存本地数据，不会自动同步；迁移数据请使用 JSON 导出/导入。</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="container">
+    本工具只用于自我记录，不能替代心理治疗或医疗建议；如出现强烈自伤风险，请立即联系身边可信任的人或当地急救/危机热线。
+  </footer>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    (function () {
+      "use strict";
+
+      var STORAGE_KEY = "behavior-chain-weekly-recorder-v1";
+      var records = [];
+      var editingId = null;
+      var editingType = null;
+      var currentStep = 1;
+      var activeHistoryFilter = "all";
+
+      var scenes = ["工作", "家庭", "伴侣", "父母", "朋友", "网络", "自我怀疑", "其他"];
+      var impulses = ["讨好", "试探", "装傻", "证明对错", "破罐破摔", "回避消失", "攻击或阴阳怪气", "自责自毁", "修复"];
+      var emotions = ["羞耻", "愤怒", "焦虑", "委屈", "被抛弃感", "被控制感", "空虚", "其他"];
+      var bodySignals = ["胸闷", "胃紧", "头热", "心跳快", "想哭", "想睡", "想逃", "想吵"];
+      var vulnerabilities = ["睡眠差", "漏服药物", "没吃饭", "咖啡因过多", "经前或经期", "疲劳", "孤独", "其他"];
+      var realNeeds = ["被理解", "被尊重", "被安慰", "被允许拒绝", "被认真对待", "被证明没有错", "退出压力", "重新掌控局面", "其他"];
+      var repairTargets = ["自己", "丈夫", "父母", "同事", "咨询师", "朋友", "其他"];
+      var repairMethods = ["解释", "道歉", "澄清边界", "补做任务", "暂时观察", "拉开距离", "其他"];
+      var weeklyGoals = ["不立刻答应", "不设局试探", "情绪强度 ≥ 7 时不发消息", "犯错后不自我羞辱", "每天一个主体性小动作", "需要帮助时直接说"];
+      var oldPatternOptions = [
+        "我是否在测试对方？",
+        "我是否想证明对方不懂我？",
+        "我是否想退出关系？",
+        "我是否想让对方震惊/接住我？",
+        "我是否把对方的冷淡理解成我完了？",
+        "我是否把这个反应说出来了？"
+      ];
+      var alternativeActions = {
+        "当我想讨好": ["我想一下再回复。", "不立刻答应。", "只答应一半。", "这个我现在不太方便。"],
+        "当我想试探": ["我想确认一下你的意思。", "我有点不安，但我不想用试探的方式表达。", "暂停 10 分钟。"],
+      "当我想破罐破摔": ["不发长消息。", "不辞职、不拉黑、不摊牌。", "先写在记录器里，不发给任何人。", "延迟 24 小时。"],
+      "当我想证明对错": ["这件事需要我赢吗？", "赢了对我有什么实际帮助？", "只陈述一次事实，不展开辩论。"]
+      };
+      var storageService = {
+        recordsKey: STORAGE_KEY,
+        lastSaveKey: STORAGE_KEY + "-last-save",
+        lastBackupKey: STORAGE_KEY + "-last-backup",
+        loadRecords: function () {
+          var raw = localStorage.getItem(this.recordsKey);
+          return raw ? JSON.parse(raw) : [];
+        },
+        saveRecords: function (items) {
+          localStorage.setItem(this.recordsKey, JSON.stringify(items));
+          localStorage.setItem(this.lastSaveKey, new Date().toISOString());
+        },
+        getMeta: function (key) {
+          return localStorage.getItem(key) || "";
+        },
+        setBackupTime: function () {
+          localStorage.setItem(this.lastBackupKey, new Date().toISOString());
+        },
+        clear: function () {
+          localStorage.removeItem(this.recordsKey);
+          localStorage.setItem(this.lastSaveKey, new Date().toISOString());
+        }
+      };
+
+      var exportFields = [
+        "id", "createdAt", "updatedAt", "recordType", "scene", "event", "trigger", "perceivedJudgment", "fear",
+        "emotions", "emotionIntensity", "bodySignals", "vulnerabilityFactors", "impulseType", "immediateImpulse",
+        "realNeed", "actualBehavior", "stoppedStatus", "stopMethod", "afterStopResult", "shortTermGain",
+        "longTermCost", "alternativeAction", "repairNeeded", "repairTarget", "repairMethod", "repairStatus",
+        "agencyAction", "agencyScore", "nextPlan", "weeklyGoal", "notes", "agencyWanted", "agencyNotDone",
+        "agencyWhy", "oldPatterns", "weekStart", "weekEnd", "weeklyPleasing", "weeklyTesting", "weeklyStopped",
+        "weeklyRepair", "weeklyTrigger", "weeklyThought", "weeklyAgency", "weeklyAffirmation"
+      ];
+
+      var fieldNames = {
+        recordType: "记录类型",
+        scene: "场景",
+        event: "事件",
+        trigger: "触发点",
+        perceivedJudgment: "以为对方怎么看我",
+        fear: "害怕的结果",
+        emotions: "情绪",
+        emotionIntensity: "情绪强度",
+        bodySignals: "身体反应",
+        vulnerabilityFactors: "今日脆弱因素",
+        impulseType: "冲动类型",
+        immediateImpulse: "最想立刻做什么",
+        realNeed: "真正想要的是",
+        actualBehavior: "实际行为",
+        stoppedStatus: "是否停住",
+        stopMethod: "停住方法",
+        afterStopResult: "停住后发生了什么",
+        shortTermGain: "短期收益",
+        longTermCost: "长期代价",
+        alternativeAction: "替代行为",
+        repairNeeded: "是否需要修复",
+        repairTarget: "修复对象",
+        repairMethod: "修复方式",
+        repairStatus: "修复状态",
+        agencyWanted: "本来想做什么",
+        agencyNotDone: "最后没有做什么",
+        agencyAction: "真正选择的动作",
+        agencyScore: "停住评分",
+        agencyWhy: "为什么这是我的选择",
+        oldPatterns: "旧模式",
+        nextPlan: "下次具体做什么",
+        weeklyGoal: "每周唯一训练目标",
+        weeklyPleasing: "这周在哪里讨好了",
+        weeklyTesting: "这周在哪里试探了",
+        weeklyStopped: "这周哪里停住了",
+        weeklyRepair: "这周哪里可以修复",
+        weeklyTrigger: "最常见触发点",
+        weeklyThought: "最常见自动想法",
+        weeklyAgency: "保住的选择权",
+        weeklyAffirmation: "给自己的肯定",
+        notes: "备注"
+      };
+
+      function $(selector, root) {
+        return (root || document).querySelector(selector);
+      }
+
+      function $all(selector, root) {
+        return Array.prototype.slice.call((root || document).querySelectorAll(selector));
+      }
+
+      function escapeHtml(value) {
+        return String(value == null ? "" : value)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#039;");
+      }
+
+      function pad(value) {
+        return String(value).padStart(2, "0");
+      }
+
+      function uid() {
+        return "r-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 8);
+      }
+
+      function nowLocal() {
+        var d = new Date();
+        return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()) + "T" + pad(d.getHours()) + ":" + pad(d.getMinutes());
+      }
+
+      function todayDate() {
+        var d = new Date();
+        return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate());
+      }
+
+      function dateOnly(value) {
+        if (!value) return "";
+        return String(value).slice(0, 10);
+      }
+
+      function formatDate(value) {
+        if (!value) return "未记录时间";
+        var d = new Date(value);
+        if (Number.isNaN(d.getTime())) return String(value).replace("T", " ");
+        return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()) + " " + pad(d.getHours()) + ":" + pad(d.getMinutes());
+      }
+
+      function startOfWeek(date) {
+        var d = new Date(date || new Date());
+        d.setHours(0, 0, 0, 0);
+        var day = d.getDay() || 7;
+        d.setDate(d.getDate() - day + 1);
+        return d;
+      }
+
+      function endOfWeek(date) {
+        var d = startOfWeek(date);
+        d.setDate(d.getDate() + 6);
+        return d;
+      }
+
+      function fillSelect(select, options) {
+        select.innerHTML = options.map(function (item) {
+          return '<option value="' + escapeHtml(item) + '">' + escapeHtml(item) + "</option>";
+        }).join("");
+      }
+
+      function fillCheckboxChips(container, name, options) {
+        container.innerHTML = options.map(function (item) {
+          return '<label class="chip"><input type="checkbox" name="' + escapeHtml(name) + '" value="' + escapeHtml(item) + '"><span>' + escapeHtml(item) + "</span></label>";
+        }).join("");
+      }
+
+      function fillSingleChoice(container, hiddenInput, options) {
+        container.innerHTML = options.map(function (item) {
+          return '<button type="button" class="chip" data-choice="' + escapeHtml(item) + '">' + escapeHtml(item) + "</button>";
+        }).join("");
+        container.addEventListener("click", function (event) {
+          var button = event.target.closest("[data-choice]");
+          if (!button) return;
+          hiddenInput.value = button.dataset.choice;
+          $all("[data-choice]", container).forEach(function (item) {
+            item.classList.toggle("active", item === button);
+            if (item === button) {
+              item.style.borderColor = "var(--accent)";
+              item.style.background = "var(--soft)";
+              item.style.color = "var(--accent-dark)";
+              item.style.fontWeight = "700";
+            } else {
+              item.style.borderColor = "";
+              item.style.background = "";
+              item.style.color = "";
+              item.style.fontWeight = "";
+            }
+          });
+        });
+      }
+
+      function getChecked(name, root) {
+        return $all('input[name="' + name + '"]:checked', root || document).map(function (input) {
+          return input.value;
+        });
+      }
+
+      function setChecked(name, values, root) {
+        var list = Array.isArray(values) ? values : [];
+        $all('input[name="' + name + '"]', root || document).forEach(function (input) {
+          input.checked = list.indexOf(input.value) >= 0;
+        });
+      }
+
+      function normalizeRecordType(type) {
+        return ["quick", "chain", "weekly"].indexOf(type) >= 0 ? type : "chain";
+      }
+
+      function normalizeArray(value) {
+        if (Array.isArray(value)) return value.filter(Boolean);
+        if (value == null || value === "") return [];
+        return String(value).split(/[、,，/]/).map(function (item) { return item.trim(); }).filter(Boolean);
+      }
+
+      function blankRecord(overrides) {
+        var base = {
+          id: uid(),
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          recordType: "quick",
+          scene: "",
+          event: "",
+          trigger: "",
+          perceivedJudgment: "",
+          fear: "",
+          emotions: [],
+          emotionIntensity: "",
+          bodySignals: [],
+          vulnerabilityFactors: [],
+          impulseType: "",
+          immediateImpulse: "",
+          realNeed: "",
+          actualBehavior: "",
+          stoppedStatus: "",
+          stopMethod: "",
+          afterStopResult: "",
+          shortTermGain: "",
+          longTermCost: "",
+          alternativeAction: "",
+          repairNeeded: "",
+          repairTarget: "",
+          repairMethod: "",
+          repairStatus: "",
+          agencyAction: "",
+          agencyScore: "",
+          nextPlan: "",
+          weeklyGoal: "",
+          notes: ""
+        };
+        Object.assign(base, overrides || {});
+        base.recordType = normalizeRecordType(base.recordType);
+        base.emotions = normalizeArray(base.emotions);
+        base.bodySignals = normalizeArray(base.bodySignals);
+        base.vulnerabilityFactors = normalizeArray(base.vulnerabilityFactors);
+        if (base.oldPatterns) base.oldPatterns = normalizeArray(base.oldPatterns);
+        return base;
+      }
+
+      function migrateRecord(item) {
+        if (!item || typeof item !== "object") return blankRecord();
+        if (item.recordType) {
+          return blankRecord(Object.assign({}, item, {
+            recordType: normalizeRecordType(item.recordType),
+            createdAt: item.createdAt || new Date().toISOString(),
+            updatedAt: item.updatedAt || item.createdAt || new Date().toISOString()
+          }));
+        }
+
+        var data = item.data || {};
+        var type = item.type || "quick";
+        var createdAt = item.createdAt || new Date().toISOString();
+        var common = {
+          id: item.id || uid(),
+          createdAt: createdAt,
+          updatedAt: item.updatedAt || createdAt,
+          recordType: type === "weekly" ? "weekly" : (type === "quick" ? "quick" : "chain"),
+          scene: data.scene || "",
+          event: data.event || "",
+          trigger: data.trigger || data.event || "",
+          perceivedJudgment: data.perceivedJudgment || data.assumption || data.thought || "",
+          fear: data.fear || "",
+          emotions: data.emotions || data.emotion || [],
+          emotionIntensity: data.emotionIntensity || data.intensity || "",
+          bodySignals: data.bodySignals || data.body || [],
+          vulnerabilityFactors: data.vulnerabilityFactors || data.vulnerabilities || [],
+          impulseType: data.impulseType || data.urgeType || data.urge || "",
+          immediateImpulse: data.immediateImpulse || data.urge || "",
+          realNeed: data.realNeed || data.trueNeed || "",
+          actualBehavior: data.actualBehavior || data.action || data.behavior || "",
+          stoppedStatus: data.stoppedStatus || data.stopped || "",
+          stopMethod: data.stopMethod || data.method || "",
+          afterStopResult: data.afterStopResult || data.after || "",
+          shortTermGain: data.shortTermGain || data.shortGain || "",
+          longTermCost: data.longTermCost || data.longCost || "",
+          alternativeAction: data.alternativeAction || data.alternative || "",
+          repairNeeded: data.repairNeeded || "",
+          repairTarget: data.repairTarget || "",
+          repairMethod: data.repairMethod || data.repairAction || "",
+          repairStatus: data.repairStatus || "",
+          agencyWanted: data.agencyWanted || data.wanted || "",
+          agencyNotDone: data.agencyNotDone || data.notDone || "",
+          agencyAction: data.agencyAction || "",
+          agencyScore: data.agencyScore || data.score || "",
+          agencyWhy: data.agencyWhy || data.why || "",
+          oldPatterns: data.oldPatterns || data.reactions || [],
+          nextPlan: data.nextPlan || data.nextAction || "",
+          weeklyGoal: data.weeklyGoal || data.trainingGoal || data.practice || "",
+          notes: data.notes || ""
+        };
+
+        if (type === "vulnerability") {
+          common.recordType = "quick";
+          common.event = "今日脆弱因素：" + [
+            data.sleep && "睡眠" + data.sleep,
+            data.medMissed && "漏服药物" + data.medMissed,
+            data.mealRisk && "没吃饭/低血糖" + data.mealRisk,
+            data.caffeine && "咖啡因" + data.caffeine,
+            data.cycle && "经期状态" + data.cycle
+          ].filter(Boolean).join("、");
+          common.vulnerabilityFactors = [
+            data.sleep === "差" && "睡眠差",
+            data.medMissed === "是" && "漏服药物",
+            data.mealRisk === "是" && "没吃饭",
+            data.caffeine === "多" && "咖啡因过多",
+            (data.cycle === "经前" || data.cycle === "经期") && "经前或经期",
+            Number(data.fatigue) >= 7 && "疲劳",
+            Number(data.loneliness) >= 7 && "孤独"
+          ].filter(Boolean);
+        }
+
+        if (type === "weekly") {
+          common.weekStart = data.weekStart || data.start || "";
+          common.weekEnd = data.weekEnd || data.end || "";
+          common.weeklyPleasing = data.weeklyPleasing || data.pleasing || "";
+          common.weeklyTesting = data.weeklyTesting || data.testing || "";
+          common.weeklyStopped = data.weeklyStopped || data.stoppedMoments || "";
+          common.weeklyRepair = data.weeklyRepair || data.repair || "";
+          common.weeklyTrigger = data.weeklyTrigger || data.commonTrigger || "";
+          common.weeklyThought = data.weeklyThought || data.commonThought || "";
+          common.weeklyAgency = data.weeklyAgency || data.choices || "";
+          common.weeklyAffirmation = data.weeklyAffirmation || data.affirmation || "";
+        }
+
+        return blankRecord(common);
+      }
+
+      function load() {
+        try {
+          var parsed = storageService.loadRecords();
+          var incoming = Array.isArray(parsed) ? parsed : parsed.records;
+          records = Array.isArray(incoming) ? incoming.map(migrateRecord) : [];
+          save();
+        } catch (error) {
+          records = [];
+          toast("读取本地记录失败，已进入空白状态");
+        }
+      }
+
+      function save() {
+        storageService.saveRecords(records);
+        renderPwaStatus();
+      }
+
+      function toast(message) {
+        var box = $("#toast");
+        box.textContent = message;
+        box.classList.add("show");
+        clearTimeout(toast._timer);
+        toast._timer = setTimeout(function () {
+          box.classList.remove("show");
+        }, 2200);
+      }
+
+      function updateRanges() {
+        $all("[data-range-value]").forEach(function (span) {
+          var input = $("#" + span.dataset.rangeValue);
+          if (input) span.textContent = input.value;
+        });
+      }
+
+      function redAlertReasons(record) {
+        var text = JSON.stringify(record || {});
+        var reasons = [];
+        if (Number(record.emotionIntensity) >= 8) reasons.push("情绪强度 ≥8");
+        if ((record.vulnerabilityFactors || []).some(function (item) {
+          return ["睡眠差", "漏服药物", "没吃饭", "咖啡因过多", "经前或经期"].indexOf(item) >= 0;
+        })) reasons.push("脆弱因素较多");
+        if (/强烈羞耻|拉黑|辞职|摊牌|毁掉关系|伤害自己|自伤|想死|不想活/.test(text)) reasons.push("出现重大决定或风险词");
+        return reasons;
+      }
+
+      function updateAlert(record, target) {
+        var reasons = redAlertReasons(record);
+        target.classList.toggle("show", reasons.length > 0);
+        if (reasons.length) {
+          target.textContent = "温和提醒：" + reasons.join("、") + "。现在不适合做重大决定，先暂停、吃饭、喝水、睡觉、延迟 24 小时。";
+        }
+      }
+
+      function quickRecordFromForm() {
+        return blankRecord({
+          recordType: "quick",
+          createdAt: $("#quickDate").value || nowLocal(),
+          updatedAt: new Date().toISOString(),
+          scene: $("#quickScene").value,
+          event: $("#quickEvent").value.trim(),
+          perceivedJudgment: $("#quickJudgment").value.trim(),
+          emotionIntensity: $("#quickIntensity").value,
+          impulseType: $("#quickImpulse").value,
+          stoppedStatus: $("#quickStopped").value
+        });
+      }
+
+      function chainRecordFromForm() {
+        return blankRecord({
+          recordType: "chain",
+          createdAt: $("#chainDate").value || nowLocal(),
+          updatedAt: new Date().toISOString(),
+          scene: $("#chainScene").value,
+          trigger: $("#chainTrigger").value.trim(),
+          event: $("#chainTrigger").value.trim(),
+          perceivedJudgment: $("#chainJudgment").value.trim(),
+          fear: $("#chainFear").value.trim(),
+          emotions: getChecked("emotions", $("#chainForm")),
+          emotionIntensity: $("#chainIntensity").value,
+          bodySignals: getChecked("bodySignals", $("#chainForm")),
+          vulnerabilityFactors: getChecked("vulnerabilityFactors", $("#chainForm")),
+          impulseType: $("#chainImpulse").value,
+          immediateImpulse: $("#chainImmediateImpulse").value.trim(),
+          realNeed: $("#chainRealNeedValue").value,
+          actualBehavior: $("#chainActualBehavior").value.trim(),
+          stoppedStatus: $("#chainStopped").value,
+          stopMethod: $("#chainStopMethod").value.trim(),
+          afterStopResult: $("#chainAfterStop").value.trim(),
+          shortTermGain: $("#chainShortGain").value.trim(),
+          longTermCost: $("#chainLongCost").value.trim(),
+          agencyWanted: $("#chainWanted").value.trim(),
+          agencyNotDone: $("#chainNotDone").value.trim(),
+          agencyAction: $("#chainAgencyAction").value.trim(),
+          agencyScore: $("#chainAgencyScore").value,
+          agencyWhy: $("#chainAgencyWhy").value.trim(),
+          alternativeAction: $("#chainAlternative").value.trim(),
+          repairNeeded: $("#chainRepairNeeded").value,
+          repairTarget: $("#chainRepairTarget").value,
+          repairMethod: $("#chainRepairMethod").value,
+          repairStatus: $("#chainRepairStatus").value,
+          nextPlan: $("#chainNextPlan").value.trim(),
+          oldPatterns: getChecked("oldPatterns", $("#chainForm"))
+        });
+      }
+
+      function weeklyRecordFromForm() {
+        return blankRecord({
+          recordType: "weekly",
+          createdAt: ($("#weeklyEnd").value || todayDate()) + "T20:00",
+          updatedAt: new Date().toISOString(),
+          weekStart: $("#weeklyStart").value,
+          weekEnd: $("#weeklyEnd").value,
+          weeklyPleasing: $("#weeklyPleasing").value.trim(),
+          weeklyTesting: $("#weeklyTesting").value.trim(),
+          weeklyStopped: $("#weeklyStopped").value.trim(),
+          weeklyRepair: $("#weeklyRepair").value.trim(),
+          weeklyTrigger: $("#weeklyTrigger").value.trim(),
+          weeklyThought: $("#weeklyThought").value.trim(),
+          weeklyAgency: $("#weeklyAgency").value.trim(),
+          weeklyGoal: $("#weeklyGoal").value,
+          nextPlan: $("#weeklyNextPlan").value.trim(),
+          weeklyAffirmation: $("#weeklyAffirmation").value.trim(),
+          event: "每周总结：" + ($("#weeklyStart").value || "") + " 至 " + ($("#weeklyEnd").value || "")
+        });
+      }
+
+      function upsertRecord(record) {
+        if (editingId) {
+          var index = records.findIndex(function (item) { return item.id === editingId; });
+          if (index >= 0) {
+            record.id = editingId;
+            record.createdAt = records[index].createdAt || record.createdAt;
+            records[index] = record;
+          }
+          editingId = null;
+          editingType = null;
+        } else {
+          records.unshift(record);
+        }
+        save();
+        renderAll();
+      }
+
+      function resetQuickForm() {
+        $("#quickForm").reset();
+        $("#quickDate").value = nowLocal();
+        $("#quickIntensity").value = "5";
+        updateRanges();
+        updateAlert(quickRecordFromForm(), $("#quickAlert"));
+      }
+
+      function resetChainForm() {
+        $("#chainForm").reset();
+        $("#chainDate").value = nowLocal();
+        $("#chainIntensity").value = "5";
+        $("#chainAgencyScore").value = "5";
+        setChecked("emotions", [], $("#chainForm"));
+        setChecked("bodySignals", [], $("#chainForm"));
+        setChecked("vulnerabilityFactors", [], $("#chainForm"));
+        setChecked("oldPatterns", [], $("#chainForm"));
+        $("#chainRealNeedValue").value = "";
+        $all("#chainRealNeed [data-choice]").forEach(function (button) {
+          button.style.borderColor = "";
+          button.style.background = "";
+          button.style.color = "";
+          button.style.fontWeight = "";
+        });
+        setStep(1);
+        updateRanges();
+        updateAlert(chainRecordFromForm(), $("#chainAlert"));
+      }
+
+      function resetWeeklyForm() {
+        $("#weeklyForm").reset();
+        var start = startOfWeek(new Date());
+        var end = endOfWeek(new Date());
+        $("#weeklyStart").value = dateOnly(start.toISOString());
+        $("#weeklyEnd").value = dateOnly(end.toISOString());
+      }
+
+      function setFlow(id) {
+        $all(".flow-card").forEach(function (button) {
+          button.classList.toggle("active", button.dataset.flow === id);
+        });
+        $("#quickFlow").classList.toggle("hidden", id !== "quickFlow");
+        $("#chainFlow").classList.toggle("hidden", id !== "chainFlow");
+      }
+
+      function setView(id) {
+        $all(".view").forEach(function (view) { view.classList.toggle("active", view.id === id); });
+        $all(".nav button").forEach(function (button) { button.classList.toggle("active", button.dataset.view === id); });
+        if (id === "historyView") renderHistory();
+        if (id === "statsView") renderStats();
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+
+      function setStep(step) {
+        currentStep = Math.max(1, Math.min(5, Number(step)));
+        $all("[data-step]").forEach(function (button) {
+          button.classList.toggle("active", Number(button.dataset.step) === currentStep);
+        });
+        $all("[data-step-panel]").forEach(function (panel) {
+          panel.classList.toggle("active", Number(panel.dataset.stepPanel) === currentStep);
+        });
+      }
+
+      function fillChainFromQuick(record) {
+        $("#chainDate").value = record.createdAt ? String(record.createdAt).slice(0, 16) : nowLocal();
+        $("#chainScene").value = record.scene || scenes[0];
+        $("#chainTrigger").value = record.event || "";
+        $("#chainJudgment").value = record.perceivedJudgment || "";
+        $("#chainIntensity").value = record.emotionIntensity || "5";
+        $("#chainImpulse").value = record.impulseType || impulses[0];
+        $("#chainStopped").value = record.stoppedStatus || "部分停住";
+        updateRanges();
+        updateAlert(chainRecordFromForm(), $("#chainAlert"));
+      }
+
+      function weekRecords() {
+        var start = startOfWeek(new Date()).getTime();
+        var end = start + 7 * 24 * 60 * 60 * 1000;
+        return records.filter(function (record) {
+          if (record.recordType === "weekly") return false;
+          var time = new Date(record.createdAt).getTime();
+          return !Number.isNaN(time) && time >= start && time < end;
+        });
+      }
+
+      function mostCommon(list, getter) {
+        var counts = {};
+        list.forEach(function (item) {
+          var value = getter(item);
+          if (Array.isArray(value)) {
+            value.forEach(function (part) {
+              if (part) counts[part] = (counts[part] || 0) + 1;
+            });
+          } else if (value) {
+            counts[value] = (counts[value] || 0) + 1;
+          }
+        });
+        return Object.keys(counts).sort(function (a, b) { return counts[b] - counts[a]; })[0] || "暂无";
+      }
+
+      function topCommon(list, getter, limit) {
+        var counts = {};
+        list.forEach(function (item) {
+          var value = getter(item);
+          if (Array.isArray(value)) {
+            value.forEach(function (part) {
+              if (part) counts[part] = (counts[part] || 0) + 1;
+            });
+          } else if (value) {
+            counts[value] = (counts[value] || 0) + 1;
+          }
+        });
+        return Object.keys(counts)
+          .sort(function (a, b) { return counts[b] - counts[a]; })
+          .slice(0, limit)
+          .join("、") || "暂无";
+      }
+
+      function averageIntensity(list) {
+        var nums = list.map(function (record) { return Number(record.emotionIntensity); }).filter(function (n) { return Number.isFinite(n); });
+        if (!nums.length) return "0";
+        return (nums.reduce(function (sum, n) { return sum + n; }, 0) / nums.length).toFixed(1);
+      }
+
+      function latestWeeklyGoal() {
+        var weekly = records.filter(function (record) { return record.recordType === "weekly" && record.weeklyGoal; })
+          .sort(function (a, b) { return String(b.createdAt).localeCompare(String(a.createdAt)); });
+        return weekly[0] ? weekly[0].weeklyGoal : "暂无";
+      }
+
+      function generateWeeklyHintText() {
+        var list = weekRecords();
+        if (!list.length) return "本周还没有记录。可以先完成一次快速捕捉或事件复盘，再生成提示。";
+        var scene = mostCommon(list, function (record) { return record.scene; });
+        var impulse = mostCommon(list, function (record) { return record.impulseType; });
+        var high = list.filter(function (record) { return Number(record.emotionIntensity) >= 8; }).length;
+        var stopped = list.filter(function (record) { return record.stoppedStatus === "是" || record.stoppedStatus === "部分停住"; }).length;
+        var repair = list.filter(function (record) { return record.repairNeeded === "是" || record.repairStatus === "未开始"; }).length;
+        var avg = averageIntensity(list);
+        return "本周共 " + list.length + " 条记录，平均情绪强度 " + avg + "。最常见场景是「" + scene + "」，最常见冲动是「" + impulse + "」。情绪强度 ≥8 有 " + high + " 次，停住或部分停住 " + stopped + " 次，需要关注修复 " + repair + " 次。下周可以只选一个动作练习，先把范围缩小。";
+      }
+
+      function recordSummary(record) {
+        return record.event || record.trigger || record.actualBehavior || record.weeklyAffirmation || record.notes || "未填写摘要";
+      }
+
+      function recordMatchesFilter(record) {
+        var filter = activeHistoryFilter;
+        var now = new Date();
+        var created = new Date(record.createdAt);
+        if (filter === "all") return true;
+        if (filter === "high") return Number(record.emotionIntensity) >= 8;
+        if (filter === "stopped") return record.stoppedStatus === "是" || record.stoppedStatus === "部分停住";
+        if (filter === "repair") return record.repairNeeded === "是" || record.repairStatus === "未开始";
+        if (filter === "testing") return record.impulseType === "试探";
+        if (filter === "collapse") return record.impulseType === "破罐破摔";
+        if (filter === "pleasing") return record.impulseType === "讨好";
+        if (filter === "week") {
+          var start = startOfWeek(now).getTime();
+          var end = start + 7 * 24 * 60 * 60 * 1000;
+          return created.getTime() >= start && created.getTime() < end;
+        }
+        if (filter === "month") {
+          return created.getFullYear() === now.getFullYear() && created.getMonth() === now.getMonth();
+        }
+        return true;
+      }
+
+      function renderHistory() {
+        var query = $("#historySearch").value.trim().toLowerCase();
+        var list = records.filter(recordMatchesFilter).filter(function (record) {
+          if (!query) return true;
+          return JSON.stringify(record).toLowerCase().indexOf(query) >= 0;
+        }).sort(function (a, b) {
+          return String(b.createdAt).localeCompare(String(a.createdAt));
+        });
+
+        if (!list.length) {
+          $("#historyList").innerHTML = '<div class="empty">暂无符合条件的记录</div>';
+          return;
+        }
+
+        $("#historyList").innerHTML = list.map(function (record) {
+          var high = Number(record.emotionIntensity) >= 8;
+          var badges = [
+            '<span class="badge">' + (record.recordType === "quick" ? "快速" : record.recordType === "weekly" ? "周总结" : "复盘") + '</span>'
+          ];
+          if (record.scene) badges.push('<span class="badge">' + escapeHtml(record.scene) + '</span>');
+          if (record.emotionIntensity !== "") badges.push('<span class="badge ' + (high ? "high" : "") + '">强度 ' + escapeHtml(record.emotionIntensity) + '</span>');
+          if (record.impulseType) badges.push('<span class="badge">' + escapeHtml(record.impulseType) + '</span>');
+          if (record.stoppedStatus) badges.push('<span class="badge">停住：' + escapeHtml(record.stoppedStatus) + '</span>');
+          if (record.repairNeeded) badges.push('<span class="badge">修复：' + escapeHtml(record.repairNeeded) + '</span>');
+          return '<article class="record-card ' + (high ? "high" : "") + '" data-id="' + escapeHtml(record.id) + '">' +
+            '<div class="record-main">' +
+              '<div>' +
+                '<div class="badges">' + badges.join("") + '</div>' +
+                '<div class="record-title">' + escapeHtml(formatDate(record.createdAt)) + '</div>' +
+                '<p class="record-summary">' + escapeHtml(recordSummary(record)).slice(0, 120) + '</p>' +
+              '</div>' +
+              '<div class="record-actions">' +
+                '<button type="button" data-action="toggle">展开详情</button>' +
+                '<button type="button" data-action="copy">复制</button>' +
+                '<button type="button" data-action="edit">编辑</button>' +
+                '<button type="button" class="danger" data-action="delete">删除</button>' +
+              '</div>' +
+            '</div>' +
+            '<div class="record-detail"><div class="detail-grid">' + detailHtml(record) + '</div></div>' +
+          '</article>';
+        }).join("");
+      }
+
+      function detailHtml(record) {
+        return exportFields.filter(function (key) {
+          return ["id", "updatedAt"].indexOf(key) < 0;
+        }).map(function (key) {
+          var value = record[key];
+          if (Array.isArray(value)) value = value.join("、");
+          if (value == null || value === "") return "";
+          return '<div class="detail-item ' + (String(value).length > 45 ? "full" : "") + '"><b>' + escapeHtml(fieldNames[key] || key) + '</b><div>' + escapeHtml(value) + '</div></div>';
+        }).join("");
+      }
+
+      function renderStats() {
+        var list = weekRecords();
+        var metrics = [
+          ["本周记录数", list.length],
+          ["平均情绪强度", averageIntensity(list)],
+          ["情绪强度 ≥8 次数", list.filter(function (record) { return Number(record.emotionIntensity) >= 8; }).length],
+          ["最常见场景", mostCommon(list, function (record) { return record.scene; })],
+          ["最常见冲动类型", topCommon(list, function (record) { return record.impulseType; }, 3)],
+          ["停住次数", list.filter(function (record) { return record.stoppedStatus === "是" || record.stoppedStatus === "部分停住"; }).length],
+          ["修复完成次数", list.filter(function (record) { return record.repairStatus === "已完成"; }).length],
+          ["本周唯一训练目标", latestWeeklyGoal()]
+        ];
+        $("#statsGrid").innerHTML = metrics.map(function (metric) {
+          return '<div class="metric"><b>' + escapeHtml(metric[1]) + '</b><span>' + escapeHtml(metric[0]) + '</span></div>';
+        }).join("");
+      }
+
+      function formatMetaTime(value) {
+        return value ? formatDate(value) : "暂无";
+      }
+
+      function isStandaloneMode() {
+        return window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+      }
+
+      function renderPwaStatus() {
+        var root = $("#pwaStatus");
+        if (!root) return;
+        var support = "serviceWorker" in navigator && "PushManager" in window ? "支持" : ("serviceWorker" in navigator ? "支持离线缓存" : "不完整支持");
+        var online = navigator.onLine ? "在线" : "离线";
+        var installed = isStandaloneMode() ? "已安装/独立窗口" : "浏览器中打开";
+        var values = {
+          support: support,
+          online: online,
+          installed: installed,
+          count: String(records.length),
+          lastSave: formatMetaTime(storageService.getMeta(storageService.lastSaveKey)),
+          lastBackup: formatMetaTime(storageService.getMeta(storageService.lastBackupKey))
+        };
+        Object.keys(values).forEach(function (key) {
+          var node = $('[data-pwa-status="' + key + '"]', root);
+          if (node) node.textContent = values[key];
+        });
+      }
+
+      function renderAll() {
+        renderHistory();
+        renderStats();
+        renderPwaStatus();
+      }
+
+      function copyRecord(id) {
+        var original = records.find(function (record) { return record.id === id; });
+        if (!original) return;
+        var copy = blankRecord(Object.assign({}, original, {
+          id: uid(),
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        }));
+        records.unshift(copy);
+        save();
+        renderAll();
+        toast("已复制为新记录");
+      }
+
+      function deleteRecord(id) {
+        if (!confirm("确定删除这条记录吗？此操作不能撤销。")) return;
+        records = records.filter(function (record) { return record.id !== id; });
+        save();
+        renderAll();
+        toast("已删除");
+      }
+
+      function editRecord(id) {
+        var record = records.find(function (item) { return item.id === id; });
+        if (!record) return;
+        editingId = id;
+        editingType = record.recordType;
+        if (record.recordType === "weekly") {
+          setView("weeklyView");
+          $("#weeklyStart").value = record.weekStart || "";
+          $("#weeklyEnd").value = record.weekEnd || "";
+          $("#weeklyPleasing").value = record.weeklyPleasing || "";
+          $("#weeklyTesting").value = record.weeklyTesting || "";
+          $("#weeklyStopped").value = record.weeklyStopped || "";
+          $("#weeklyRepair").value = record.weeklyRepair || "";
+          $("#weeklyTrigger").value = record.weeklyTrigger || "";
+          $("#weeklyThought").value = record.weeklyThought || "";
+          $("#weeklyAgency").value = record.weeklyAgency || "";
+          $("#weeklyGoal").value = record.weeklyGoal || weeklyGoals[0];
+          $("#weeklyNextPlan").value = record.nextPlan || "";
+          $("#weeklyAffirmation").value = record.weeklyAffirmation || "";
+        } else if (record.recordType === "quick") {
+          setView("todayView");
+          setFlow("quickFlow");
+          $("#quickDate").value = String(record.createdAt || "").slice(0, 16) || nowLocal();
+          $("#quickScene").value = record.scene || scenes[0];
+          $("#quickEvent").value = record.event || "";
+          $("#quickJudgment").value = record.perceivedJudgment || "";
+          $("#quickIntensity").value = record.emotionIntensity || "5";
+          $("#quickImpulse").value = record.impulseType || impulses[0];
+          $("#quickStopped").value = record.stoppedStatus || "是";
+          updateRanges();
+        } else {
+          setView("todayView");
+          setFlow("chainFlow");
+          $("#chainDate").value = String(record.createdAt || "").slice(0, 16) || nowLocal();
+          $("#chainScene").value = record.scene || scenes[0];
+          $("#chainTrigger").value = record.trigger || record.event || "";
+          $("#chainJudgment").value = record.perceivedJudgment || "";
+          $("#chainFear").value = record.fear || "";
+          setChecked("emotions", record.emotions, $("#chainForm"));
+          $("#chainIntensity").value = record.emotionIntensity || "5";
+          setChecked("bodySignals", record.bodySignals, $("#chainForm"));
+          setChecked("vulnerabilityFactors", record.vulnerabilityFactors, $("#chainForm"));
+          $("#chainImpulse").value = record.impulseType || impulses[0];
+          $("#chainImmediateImpulse").value = record.immediateImpulse || "";
+          $("#chainRealNeedValue").value = record.realNeed || "";
+          $("#chainActualBehavior").value = record.actualBehavior || "";
+          $("#chainStopped").value = record.stoppedStatus || "是";
+          $("#chainStopMethod").value = record.stopMethod || "";
+          $("#chainAfterStop").value = record.afterStopResult || "";
+          $("#chainShortGain").value = record.shortTermGain || "";
+          $("#chainLongCost").value = record.longTermCost || "";
+          $("#chainWanted").value = record.agencyWanted || "";
+          $("#chainNotDone").value = record.agencyNotDone || "";
+          $("#chainAgencyAction").value = record.agencyAction || "";
+          $("#chainAgencyScore").value = record.agencyScore || "5";
+          $("#chainAgencyWhy").value = record.agencyWhy || "";
+          $("#chainAlternative").value = record.alternativeAction || "";
+          $("#chainRepairNeeded").value = record.repairNeeded || "否";
+          $("#chainRepairTarget").value = record.repairTarget || repairTargets[0];
+          $("#chainRepairMethod").value = record.repairMethod || repairMethods[0];
+          $("#chainRepairStatus").value = record.repairStatus || "未开始";
+          $("#chainNextPlan").value = record.nextPlan || "";
+          setChecked("oldPatterns", record.oldPatterns || [], $("#chainForm"));
+          updateRanges();
+          setStep(1);
+        }
+        toast("已进入编辑模式，保存后会覆盖原记录");
+      }
+
+      function csvEscape(value) {
+        var text = Array.isArray(value) ? value.join("、") : String(value == null ? "" : value);
+        return '"' + text.replace(/"/g, '""') + '"';
+      }
+
+      function download(filename, content, type) {
+        var blob = new Blob([content], { type: type });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement("a");
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+      }
+
+      function exportJson() {
+        storageService.setBackupTime();
+        renderPwaStatus();
+        download("行为链与每周复盘记录.json", JSON.stringify({ version: 2, exportedAt: new Date().toISOString(), records: records }, null, 2), "application/json;charset=utf-8");
+      }
+
+      function exportCsv() {
+        storageService.setBackupTime();
+        renderPwaStatus();
+        var rows = [exportFields.map(csvEscape).join(",")].concat(records.map(function (record) {
+          return exportFields.map(function (key) { return csvEscape(record[key]); }).join(",");
+        }));
+        download("行为链与每周复盘记录.csv", "\ufeff" + rows.join("\n"), "text/csv;charset=utf-8");
+      }
+
+      function exportTxt() {
+        storageService.setBackupTime();
+        renderPwaStatus();
+        var text = records.map(function (record) {
+          return exportFields.map(function (key) {
+            var value = record[key];
+            if (Array.isArray(value)) value = value.join("、");
+            if (value == null || value === "") return "";
+            return (fieldNames[key] || key) + "：" + value;
+          }).filter(Boolean).join("\n");
+        }).join("\n\n---\n\n");
+        download("行为链与每周复盘记录.txt", "\ufeff" + text, "text/plain;charset=utf-8");
+      }
+
+      function mergeImportedRecords(incoming) {
+        var stats = { imported: 0, updated: 0, skipped: 0 };
+        var byId = {};
+        records.forEach(function (record, index) {
+          byId[record.id] = index;
+        });
+        incoming.forEach(function (record) {
+          if (!record.id) record.id = uid();
+          var index = byId[record.id];
+          if (index == null) {
+            records.push(record);
+            byId[record.id] = records.length - 1;
+            stats.imported += 1;
+            return;
+          }
+          var current = records[index];
+          var incomingTime = new Date(record.updatedAt || record.createdAt || 0).getTime();
+          var currentTime = new Date(current.updatedAt || current.createdAt || 0).getTime();
+          if (incomingTime > currentTime) {
+            records[index] = record;
+            stats.updated += 1;
+          } else {
+            stats.skipped += 1;
+          }
+        });
+        records.sort(function (a, b) {
+          return String(b.createdAt).localeCompare(String(a.createdAt));
+        });
+        return stats;
+      }
+
+      function importJson(file) {
+        if (!file) return;
+        var reader = new FileReader();
+        reader.onload = function () {
+          try {
+            var parsed = JSON.parse(reader.result);
+            var incoming = Array.isArray(parsed) ? parsed : parsed.records;
+            if (!Array.isArray(incoming)) throw new Error("不是记录数组");
+            if (!incoming.every(function (item) { return item && typeof item === "object"; })) throw new Error("记录格式不正确");
+            var migrated = incoming.map(migrateRecord);
+            var replace = confirm("导入后是否替换当前全部记录？\n确定：替换\n取消：追加");
+            var stats;
+            if (replace) {
+              records = migrated;
+              stats = { imported: migrated.length, updated: 0, skipped: 0 };
+            } else {
+              stats = mergeImportedRecords(migrated);
+            }
+            save();
+            renderAll();
+            toast("导入完成：新增 " + stats.imported + "，更新 " + stats.updated + "，跳过 " + stats.skipped);
+          } catch (error) {
+            toast("导入失败：JSON 格式不正确");
+          } finally {
+            $("#importFile").value = "";
+          }
+        };
+        reader.readAsText(file, "utf-8");
+      }
+
+      function bindEvents() {
+        window.addEventListener("online", renderPwaStatus);
+        window.addEventListener("offline", renderPwaStatus);
+
+        $all(".nav button").forEach(function (button) {
+          button.addEventListener("click", function () { setView(button.dataset.view); });
+        });
+
+        $all(".flow-card[data-flow]").forEach(function (button) {
+          button.addEventListener("click", function () { setFlow(button.dataset.flow); });
+        });
+
+        $all("[data-go-view]").forEach(function (button) {
+          button.addEventListener("click", function () { setView(button.dataset.goView); });
+        });
+
+        $all("[data-step]").forEach(function (button) {
+          button.addEventListener("click", function () { setStep(button.dataset.step); });
+        });
+
+        $("#prevStep").addEventListener("click", function () { setStep(currentStep - 1); });
+        $("#nextStep").addEventListener("click", function () { setStep(currentStep + 1); });
+
+        $all('input[type="range"]').forEach(function (range) {
+          range.addEventListener("input", function () {
+            updateRanges();
+            updateAlert(quickRecordFromForm(), $("#quickAlert"));
+            updateAlert(chainRecordFromForm(), $("#chainAlert"));
+          });
+        });
+
+        ["quickScene", "quickEvent", "quickJudgment", "quickImpulse", "quickStopped"].forEach(function (id) {
+          $("#" + id).addEventListener("input", function () { updateAlert(quickRecordFromForm(), $("#quickAlert")); });
+          $("#" + id).addEventListener("change", function () { updateAlert(quickRecordFromForm(), $("#quickAlert")); });
+        });
+
+        $("#chainForm").addEventListener("input", function () { updateAlert(chainRecordFromForm(), $("#chainAlert")); });
+        $("#chainForm").addEventListener("change", function () { updateAlert(chainRecordFromForm(), $("#chainAlert")); });
+
+        $("#quickForm").addEventListener("submit", function (event) {
+          event.preventDefault();
+          var record = quickRecordFromForm();
+          if (!record.event) {
+            toast("请先写下发生了什么");
+            return;
+          }
+          upsertRecord(record);
+          resetQuickForm();
+          toast("快速捕捉已保存");
+        });
+
+        $("#quickToChain").addEventListener("click", function () {
+          var record = quickRecordFromForm();
+          fillChainFromQuick(record);
+          setFlow("chainFlow");
+          setStep(1);
+        });
+
+        $("#chainForm").addEventListener("submit", function (event) {
+          event.preventDefault();
+          var record = chainRecordFromForm();
+          if (!record.trigger) {
+            toast("请先填写触发点");
+            setStep(1);
+            return;
+          }
+          upsertRecord(record);
+          resetChainForm();
+          toast("事件复盘已保存");
+        });
+
+        $("#weeklyForm").addEventListener("submit", function (event) {
+          event.preventDefault();
+          upsertRecord(weeklyRecordFromForm());
+          resetWeeklyForm();
+          toast("每周总结已保存");
+        });
+
+        $("#generateWeeklyHint").addEventListener("click", function () {
+          $("#weeklyHint").textContent = generateWeeklyHintText();
+        });
+
+        $("#historySearch").addEventListener("input", renderHistory);
+        $all(".filter-chip").forEach(function (button) {
+          button.addEventListener("click", function () {
+            activeHistoryFilter = button.dataset.filter;
+            $all(".filter-chip").forEach(function (item) { item.classList.toggle("active", item === button); });
+            renderHistory();
+          });
+        });
+
+        $("#historyList").addEventListener("click", function (event) {
+          var button = event.target.closest("button[data-action]");
+          if (!button) return;
+          var card = event.target.closest(".record-card");
+          var id = card && card.dataset.id;
+          if (button.dataset.action === "toggle") {
+            card.classList.toggle("open");
+            button.textContent = card.classList.contains("open") ? "收起详情" : "展开详情";
+          }
+          if (button.dataset.action === "copy") copyRecord(id);
+          if (button.dataset.action === "edit") editRecord(id);
+          if (button.dataset.action === "delete") deleteRecord(id);
+        });
+
+        $("#alternativeLibrary").addEventListener("click", function (event) {
+          var button = event.target.closest("[data-alternative]");
+          if (!button) return;
+          var target = $("#chainAlternative");
+          target.value = target.value ? target.value + "\n" + button.dataset.alternative : button.dataset.alternative;
+          toast("已填入替代行为");
+        });
+
+        $("#exportJson").addEventListener("click", exportJson);
+        $("#exportCsv").addEventListener("click", exportCsv);
+        $("#exportTxt").addEventListener("click", exportTxt);
+        $("#importJson").addEventListener("click", function () { $("#importFile").click(); });
+        $("#importFile").addEventListener("change", function (event) { importJson(event.target.files[0]); });
+        $("#clearAll").addEventListener("click", function () {
+          if (!records.length) {
+            toast("当前没有记录");
+            return;
+          }
+          if (!confirm("确定清空全部记录吗？此操作不能撤销。")) return;
+          records = [];
+          storageService.clear();
+          renderAll();
+          toast("已清空");
+        });
+      }
+
+      function registerServiceWorker() {
+        if (!("serviceWorker" in navigator)) {
+          renderPwaStatus();
+          return;
+        }
+        if (location.protocol !== "https:" && location.hostname !== "localhost" && location.hostname !== "127.0.0.1") {
+          renderPwaStatus();
+          return;
+        }
+        navigator.serviceWorker.register("./service-worker.js").then(function (registration) {
+          if (registration.waiting) registration.waiting.postMessage({ type: "SKIP_WAITING" });
+          registration.addEventListener("updatefound", function () {
+            var worker = registration.installing;
+            if (!worker) return;
+            worker.addEventListener("statechange", function () {
+              if (worker.state === "installed" && navigator.serviceWorker.controller) {
+                toast("离线缓存已更新，下次打开会使用新版本");
+              }
+            });
+          });
+          renderPwaStatus();
+        }).catch(function () {
+          renderPwaStatus();
+        });
+      }
+
+      function initAlternativeLibrary() {
+        $("#alternativeLibrary").innerHTML = Object.keys(alternativeActions).map(function (group) {
+          return '<div class="library-group"><b>' + escapeHtml(group) + '</b><div class="chips">' +
+            alternativeActions[group].map(function (item) {
+              return '<button type="button" data-alternative="' + escapeHtml(item) + '">' + escapeHtml(item) + '</button>';
+            }).join("") +
+          '</div></div>';
+        }).join("");
+      }
+
+      function init() {
+        fillSelect($("#quickScene"), scenes);
+        fillSelect($("#chainScene"), scenes);
+        fillSelect($("#quickImpulse"), impulses);
+        fillSelect($("#chainImpulse"), impulses);
+        fillSelect($("#chainRepairTarget"), repairTargets);
+        fillSelect($("#chainRepairMethod"), repairMethods);
+        fillSelect($("#weeklyGoal"), weeklyGoals);
+        fillCheckboxChips($("#chainEmotions"), "emotions", emotions);
+        fillCheckboxChips($("#chainBodySignals"), "bodySignals", bodySignals);
+        fillCheckboxChips($("#chainVulnerabilities"), "vulnerabilityFactors", vulnerabilities);
+        fillCheckboxChips($("#oldPatternChecks"), "oldPatterns", oldPatternOptions);
+        fillSingleChoice($("#chainRealNeed"), $("#chainRealNeedValue"), realNeeds);
+        initAlternativeLibrary();
+        resetQuickForm();
+        resetChainForm();
+        resetWeeklyForm();
+        load();
+        bindEvents();
+        renderAll();
+        registerServiceWorker();
+      }
+
+      init();
+    })();
+  </script>
+</body>
+</html>
