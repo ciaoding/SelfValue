@@ -153,6 +153,20 @@
       gap: 16px;
     }
 
+    .page-illustration {
+      flex: 0 0 auto;
+      width: 92px;
+      height: 72px;
+      opacity: .94;
+    }
+
+    .page-illustration img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
     .page-head h2 {
       margin: 0 0 3px;
       font-size: 23px;
@@ -173,7 +187,10 @@
     }
 
     .flow-card {
-      display: block;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      column-gap: 12px;
       text-align: left;
       padding: 15px;
       min-height: 96px;
@@ -196,6 +213,14 @@
       display: block;
       color: var(--muted);
       font-size: 13px;
+    }
+
+    .flow-card .flow-text { min-width: 0; }
+
+    .flow-art {
+      width: 56px;
+      height: 56px;
+      opacity: .92;
     }
 
     .card {
@@ -634,6 +659,11 @@
 
     @media (max-width: 760px) {
       .topbar { display: block; }
+      .page-head { align-items: center; }
+      .page-illustration {
+        width: 72px;
+        height: 56px;
+      }
       .flow-grid,
       .form-grid,
       .detail-grid,
@@ -703,16 +733,23 @@
           <h2>今日记录</h2>
           <p class="purpose">刚被触发时先捕捉现场，等稳定一点再做完整复盘。</p>
         </div>
+        <div class="page-illustration" aria-hidden="true"><img src="illustrations/today.svg" alt=""></div>
       </div>
 
       <div class="flow-grid" aria-label="记录入口">
         <button type="button" class="flow-card active" data-flow="quickFlow">
-          <strong>快速捕捉</strong>
-          <span>1 分钟，只记关键现场。</span>
+          <span class="flow-text">
+            <strong>快速捕捉</strong>
+            <span>1 分钟，只记关键现场。</span>
+          </span>
+          <img class="flow-art" src="illustrations/capture.svg" alt="" aria-hidden="true">
         </button>
         <button type="button" class="flow-card" data-flow="chainFlow">
-          <strong>事件复盘</strong>
-          <span>5-10 分钟，把一次事件梳理完整。</span>
+          <span class="flow-text">
+            <strong>事件复盘</strong>
+            <span>5-10 分钟，把一次事件梳理完整。</span>
+          </span>
+          <img class="flow-art" src="illustrations/review.svg" alt="" aria-hidden="true">
         </button>
       </div>
 
@@ -975,6 +1012,7 @@
           <h2>历史记录</h2>
           <p class="purpose">用卡片快速回看重点，也能筛出高强度、停住了、需要修复的记录。</p>
         </div>
+        <div class="page-illustration" aria-hidden="true"><img src="illustrations/history.svg" alt=""></div>
       </div>
       <div class="card">
         <div class="card-body">
@@ -1001,6 +1039,7 @@
           <h2>每周总结</h2>
           <p class="purpose">一周只看几个模式，再选一个下周真正要练的动作。</p>
         </div>
+        <div class="page-illustration" aria-hidden="true"><img src="illustrations/weekly.svg" alt=""></div>
       </div>
       <section class="card">
         <div class="card-head">
@@ -1075,6 +1114,7 @@
           <h2>趋势统计</h2>
           <p class="purpose">只看最重要的几个指标：有没有记录、有没有停住、有没有修复。</p>
         </div>
+        <div class="page-illustration" aria-hidden="true"><img src="illustrations/stats.svg" alt=""></div>
       </div>
       <div class="stats-grid" id="statsGrid"></div>
     </section>
@@ -1085,6 +1125,7 @@
           <h2>设置/导出</h2>
           <p class="purpose">所有数据只保存在当前浏览器的 localStorage；这里可以导入、导出或清空。</p>
         </div>
+        <div class="page-illustration" aria-hidden="true"><img src="illustrations/settings.svg" alt=""></div>
       </div>
       <div class="card">
         <div class="card-body">

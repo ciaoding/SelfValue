@@ -1,10 +1,17 @@
-const CACHE_VERSION = "behavior-recorder-pwa-v1";
+const CACHE_VERSION = "behavior-recorder-pwa-v2";
 const APP_SHELL = [
   "./",
   "./index.html",
   "./manifest.webmanifest",
   "./icons/icon-192.png",
-  "./icons/icon-512.png"
+  "./icons/icon-512.png",
+  "./illustrations/today.svg",
+  "./illustrations/capture.svg",
+  "./illustrations/review.svg",
+  "./illustrations/history.svg",
+  "./illustrations/weekly.svg",
+  "./illustrations/stats.svg",
+  "./illustrations/settings.svg"
 ];
 
 self.addEventListener("install", (event) => {

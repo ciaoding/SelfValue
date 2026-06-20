@@ -10,6 +10,7 @@
 - `manifest.webmanifest`
 - `service-worker.js`
 - `icons` 文件夹
+- `illustrations` 文件夹
 
 不用上传：
 
